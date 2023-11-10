@@ -109,3 +109,73 @@ func TestUnmarshal(t *testing.T) {
 		}
 	})
 }
+
+func TestAnnotation(t *testing.T) {
+	type testStruct2 struct {
+		Value *string `json:"value" annotation:"@Required"`
+	}
+
+	type testStruct3 struct {
+		Value *string `json:"value" annotation:"@NotBlank"`
+	}
+
+	type testStruct4 struct {
+		Value *string `json:"value" annotation:"@NotEmpty"`
+	}
+
+	t.Run("[Required]", func(t *testing.T) {
+		_, err := jsonx.Unmarshal[testStruct2]([]byte(`{ "value": null }`))
+		if err == nil {
+			t.Fatal("unexpected result")
+		}
+
+		_, err = jsonx.Unmarshal[testStruct2]([]byte(`{ "value": "test_value" }`))
+		if err != nil {
+			t.Fatal("unexpected result")
+		}
+	})
+
+	t.Run("[NotBlank]", func(t *testing.T) {
+		_, err := jsonx.Unmarshal[testStruct3]([]byte(`{ "value": null }`))
+		if err == nil {
+			t.Fatal("unexpected result1")
+		}
+
+		_, err = jsonx.Unmarshal[testStruct3]([]byte(`{ "value": "" }`))
+		if err == nil {
+			t.Fatal("unexpected result2")
+		}
+
+		_, err = jsonx.Unmarshal[testStruct3]([]byte(`{ "value": "    " }`))
+		if err == nil {
+			t.Fatal("unexpected result3")
+		}
+
+		_, err = jsonx.Unmarshal[testStruct3]([]byte(`{ "value": "test_value" }`))
+		if err != nil {
+			t.Fatal("unexpected result4")
+		}
+	})
+
+	t.Run("[NotEmpty]", func(t *testing.T) {
+		_, err := jsonx.Unmarshal[testStruct4]([]byte(`{ "value": null }`))
+		if err == nil {
+			t.Fatal("unexpected result1")
+		}
+
+		_, err = jsonx.Unmarshal[testStruct4]([]byte(`{ "value": "" }`))
+		if err == nil {
+			t.Fatal("unexpected result2")
+		}
+
+		_, err = jsonx.Unmarshal[testStruct4]([]byte(`{ "value": "    " }`))
+		if err != nil {
+			t.Fatal("unexpected result3")
+		}
+
+		_, err = jsonx.Unmarshal[testStruct4]([]byte(`{ "value": "test_value" }`))
+		if err != nil {
+			t.Fatal("unexpected result4")
+		}
+	})
+}

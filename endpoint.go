@@ -3,6 +3,7 @@ package jsonx
 import (
 	"encoding/json"
 	"errors"
+	"github.com/aivyss/jsonx/tag"
 	"github.com/aivyss/jsonx/validate"
 	"reflect"
 	"sort"
@@ -25,15 +26,27 @@ func Unmarshal[V any](data []byte) (*V, error) {
 		return nil, errors.Join(errors.New("fail to unmarshal"), err)
 	}
 
-	typeOf := reflect.TypeOf(v).Elem()
-	if validator, ok := validatorMap[typeOf]; ok {
+	// tag validation
+	typeOf := reflect.TypeOf(*v)
+	for i := 0; i < typeOf.NumField(); i++ {
+		err := tag.ValidateAnnotationTag(typeOf.Field(i).Tag.Get("annotation"), reflect.ValueOf(*v).Field(i).Interface())
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	typeOfElem := reflect.TypeOf(v).Elem()
+	// default validation
+	if validator, ok := validatorMap[typeOfElem]; ok {
 		if vd, ok := validator.(validate.Validator[V]); ok {
 			if err := vd.Validate(*v); err != nil {
 				return nil, err
 			}
 		}
 	}
-	validators := orderedValidatorMap.Get(typeOf)
+
+	// ordered validations
+	validators := orderedValidatorMap.Get(typeOfElem)
 	vSlice := make([]validate.OrderedValidator[V], 0, len(validators))
 	for _, v := range validators {
 		if v2, ok := v.(validate.OrderedValidator[V]); ok {
@@ -50,6 +63,10 @@ func Unmarshal[V any](data []byte) (*V, error) {
 	}
 
 	return v, nil
+}
+
+func Marshal(v any) ([]byte, error) {
+	return json.Marshal(v)
 }
 
 func Close() {
