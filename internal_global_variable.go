@@ -1,9 +1,9 @@
 package jsonx
 
 import (
-	"github.com/aivyss/jsonx/common"
+	"github.com/aivyss/typex"
 	"reflect"
 )
 
-var orderedValidatorMap = common.NewMultiMap[reflect.Type, any]()
+var orderedValidatorMap = typex.NewMultiMap[reflect.Type, any]()
 var validatorMap = map[reflect.Type]any{}
