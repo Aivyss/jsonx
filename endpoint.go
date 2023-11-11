@@ -3,8 +3,10 @@ package jsonx
 import (
 	"encoding/json"
 	"errors"
+	"github.com/aivyss/jsonx/definitions"
 	"github.com/aivyss/jsonx/tag"
 	"github.com/aivyss/jsonx/validate"
+	"github.com/aivyss/typex"
 	"reflect"
 	"sort"
 )
@@ -69,7 +71,11 @@ func Marshal(v any) ([]byte, error) {
 	return json.Marshal(v)
 }
 
+func RegisterCustomAnnotation(annotationName string, validateFunc definitions.AnnotationValidate) error {
+	return definitions.RegisterCustomAnnotation(annotationName, validateFunc)
+}
+
 func Close() {
 	validatorMap = map[reflect.Type]any{}
-	orderedValidatorMap.Clean()
+	orderedValidatorMap = typex.NewMultiMap[reflect.Type, any]()
 }

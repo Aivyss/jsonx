@@ -111,71 +111,203 @@ func TestUnmarshal(t *testing.T) {
 }
 
 func TestAnnotation(t *testing.T) {
-	type testStruct2 struct {
-		Value *string `json:"value" annotation:"@Required"`
-	}
-
-	type testStruct3 struct {
-		Value *string `json:"value" annotation:"@NotBlank"`
-	}
-
-	type testStruct4 struct {
-		Value *string `json:"value" annotation:"@NotEmpty"`
-	}
-
 	t.Run("[Required]", func(t *testing.T) {
-		_, err := jsonx.Unmarshal[testStruct2]([]byte(`{ "value": null }`))
+		type testStruct struct {
+			Value *string `json:"value" annotation:"@Required"`
+		}
+
+		_, err := jsonx.Unmarshal[testStruct]([]byte(`{ "value": null }`))
 		if err == nil {
 			t.Fatal("unexpected result")
 		}
 
-		_, err = jsonx.Unmarshal[testStruct2]([]byte(`{ "value": "test_value" }`))
+		_, err = jsonx.Unmarshal[testStruct]([]byte(`{ "value": "test_value" }`))
 		if err != nil {
 			t.Fatal("unexpected result")
 		}
 	})
 
 	t.Run("[NotBlank]", func(t *testing.T) {
-		_, err := jsonx.Unmarshal[testStruct3]([]byte(`{ "value": null }`))
+		type testStruct struct {
+			Value *string `json:"value" annotation:"@NotBlank"`
+		}
+
+		_, err := jsonx.Unmarshal[testStruct]([]byte(`{ "value": null }`))
 		if err == nil {
 			t.Fatal("unexpected result1")
 		}
 
-		_, err = jsonx.Unmarshal[testStruct3]([]byte(`{ "value": "" }`))
+		_, err = jsonx.Unmarshal[testStruct]([]byte(`{ "value": "" }`))
 		if err == nil {
 			t.Fatal("unexpected result2")
 		}
 
-		_, err = jsonx.Unmarshal[testStruct3]([]byte(`{ "value": "    " }`))
+		_, err = jsonx.Unmarshal[testStruct]([]byte(`{ "value": "    " }`))
 		if err == nil {
 			t.Fatal("unexpected result3")
 		}
 
-		_, err = jsonx.Unmarshal[testStruct3]([]byte(`{ "value": "test_value" }`))
+		_, err = jsonx.Unmarshal[testStruct]([]byte(`{ "value": "test_value" }`))
 		if err != nil {
 			t.Fatal("unexpected result4")
 		}
 	})
 
 	t.Run("[NotEmpty]", func(t *testing.T) {
-		_, err := jsonx.Unmarshal[testStruct4]([]byte(`{ "value": null }`))
+		type testStruct struct {
+			Value *string `json:"value" annotation:"@NotEmpty"`
+		}
+
+		_, err := jsonx.Unmarshal[testStruct]([]byte(`{ "value": null }`))
 		if err == nil {
 			t.Fatal("unexpected result1")
 		}
 
-		_, err = jsonx.Unmarshal[testStruct4]([]byte(`{ "value": "" }`))
+		_, err = jsonx.Unmarshal[testStruct]([]byte(`{ "value": "" }`))
 		if err == nil {
 			t.Fatal("unexpected result2")
 		}
 
-		_, err = jsonx.Unmarshal[testStruct4]([]byte(`{ "value": "    " }`))
+		_, err = jsonx.Unmarshal[testStruct]([]byte(`{ "value": "    " }`))
 		if err != nil {
 			t.Fatal("unexpected result3")
 		}
 
-		_, err = jsonx.Unmarshal[testStruct4]([]byte(`{ "value": "test_value" }`))
+		_, err = jsonx.Unmarshal[testStruct]([]byte(`{ "value": "test_value" }`))
 		if err != nil {
 			t.Fatal("unexpected result4")
+		}
+	})
+
+	t.Run("[Email]", func(t *testing.T) {
+		type testStruct1 struct {
+			Value *string `json:"value" annotation:"@Email"`
+		}
+		type testStruct2 struct {
+			Value string `json:"value" annotation:"@Email"`
+		}
+
+		_, err := jsonx.Unmarshal[testStruct1]([]byte(`{ "value": "test@example.com" }`))
+		if err != nil {
+			t.Fatal("unexpected result1")
+		}
+		_, err = jsonx.Unmarshal[testStruct1]([]byte(`{ "value": "test@example.co.jp" }`))
+		if err != nil {
+			t.Fatal("unexpected result1")
+		}
+
+		_, err = jsonx.Unmarshal[testStruct1]([]byte(`{ "value": "test@sub.example.co.kr" }`))
+		if err != nil {
+			t.Fatal("unexpected result1")
+		}
+
+		_, err = jsonx.Unmarshal[testStruct2]([]byte(`{ "value": "test@example.com" }`))
+		if err != nil {
+			t.Fatal("unexpected result1")
+		}
+		_, err = jsonx.Unmarshal[testStruct2]([]byte(`{ "value": "test@example.co.jp" }`))
+		if err != nil {
+			t.Fatal("unexpected result1")
+		}
+
+		_, err = jsonx.Unmarshal[testStruct2]([]byte(`{ "value": "test@sub.example.co.kr" }`))
+		if err != nil {
+			t.Fatal("unexpected result1")
+		}
+	})
+
+	t.Run("[NotContainsNil]", func(t *testing.T) {
+		type testStruct struct {
+			Value []*string `json:"value" annotation:"@NotContainsNil"`
+		}
+		_, err := jsonx.Unmarshal[testStruct]([]byte(`{ "value": [null, "a", "b"] }`))
+		if err == nil {
+			t.Fatal("unexpected result1")
+		}
+
+		o, err := jsonx.Unmarshal[testStruct]([]byte(`{ "value": ["a", "b"] }`))
+		if err != nil {
+			t.Fatal("unexpected result2")
+		}
+
+		for _, v := range o.Value {
+			if *v != "a" && *v != "b" {
+				t.Fatal("unexpected result3")
+			}
+		}
+	})
+
+	t.Run("[NotContainsEmpty]", func(t *testing.T) {
+		type testStruct struct {
+			Value []*string `json:"value" annotation:"@NotContainsEmpty"`
+		}
+		_, err := jsonx.Unmarshal[testStruct]([]byte(`{ "value": [null, "a", "b"] }`))
+		if err == nil {
+			t.Fatal("unexpected result1")
+		}
+		_, err = jsonx.Unmarshal[testStruct]([]byte(`{ "value": ["", "a", "b"] }`))
+		if err == nil {
+			t.Fatal("unexpected result1")
+		}
+
+		_, err = jsonx.Unmarshal[testStruct]([]byte(`{ "value": ["c", "a", "b"] }`))
+		if err != nil {
+			t.Fatal("unexpected result1")
+		}
+
+		_, err = jsonx.Unmarshal[testStruct]([]byte(`{ "value": [" ", "a", "b"] }`))
+		if err != nil {
+			t.Fatal("unexpected result1")
+		}
+	})
+
+	t.Run("[NotContainsBlank]", func(t *testing.T) {
+		type testStruct struct {
+			Value []*string `json:"value" annotation:"@NotContainsBlank"`
+		}
+		_, err := jsonx.Unmarshal[testStruct]([]byte(`{ "value": [null, "a", "b"] }`))
+		if err == nil {
+			t.Fatal("unexpected result1")
+		}
+		_, err = jsonx.Unmarshal[testStruct]([]byte(`{ "value": ["", "a", "b"] }`))
+		if err == nil {
+			t.Fatal("unexpected result2")
+		}
+
+		_, err = jsonx.Unmarshal[testStruct]([]byte(`{ "value": ["c", "a", "b"] }`))
+		if err != nil {
+			t.Fatal("unexpected result3")
+		}
+
+		_, err = jsonx.Unmarshal[testStruct]([]byte(`{ "value": [" ", "a", "b"] }`))
+		if err == nil {
+			t.Fatal("unexpected result4")
+		}
+	})
+
+	t.Run("[customAnnotation]", func(t *testing.T) {
+		type testStruct struct {
+			Value string `json:"value" annotation:"@Banana"`
+		}
+
+		if err := jsonx.RegisterCustomAnnotation("Banana", func(v any) error {
+			if v.(string) != "banana" {
+				return errors.New("test error")
+			}
+
+			return nil
+		}); err != nil {
+			t.Fatal("unexpected result1")
+		}
+
+		o, err := jsonx.Unmarshal[testStruct]([]byte(`{ "value": "banana" }`))
+
+		if err != nil || o.Value != "banana" {
+			t.Fatal("unexpected result2")
+		}
+		_, err = jsonx.Unmarshal[testStruct]([]byte(`{ "value": "apple" }`))
+		if err == nil {
+			t.Fatal("unexpected result2")
 		}
 	})
 }
