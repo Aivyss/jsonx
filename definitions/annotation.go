@@ -3,10 +3,12 @@ package definitions
 import (
 	"errors"
 	"github.com/aivyss/jsonx/constant"
+	"github.com/aivyss/typex"
 	"github.com/aivyss/typex/util"
 	"reflect"
 	"regexp"
 	"strings"
+	"time"
 )
 
 var (
@@ -18,6 +20,11 @@ var (
 		"NotContainsNil":   {name: "NotContainsNil", Validate: notContainsNil},
 		"NotContainsEmpty": {name: "NotContainsEmpty", Validate: notContainsEmpty},
 		"NotContainsBlank": {name: "NotContainsBlank", Validate: notContainsBlank},
+		"Positive":         {name: "Positive", Validate: positive},
+		"Negative":         {name: "Negative", Validate: negative},
+		"Future":           {name: "Future", Validate: future},
+		"Present":          {name: "Present", Validate: present},
+		"Past":             {name: "Past", Validate: past},
 	}
 	customAnnotations = map[string]Annotation{}
 )
@@ -206,4 +213,261 @@ func notContainsBlank(v any) error {
 	}
 
 	return nil
+}
+
+// positive
+// @Positive
+func positive(v any) error {
+	nilErr := errors.New("@Positive nil value")
+	notPositiveErr := errors.New("@Positive not positive value")
+	var err error = nil
+
+	typex.Opt(v).IfPresent(func(v any) {
+		switch v.(type) {
+		case int8:
+			if v.(int8) <= 0 {
+				err = notPositiveErr
+			}
+		case int16:
+			if v.(int16) <= 0 {
+				err = notPositiveErr
+			}
+		case int32:
+			if v.(int32) <= 0 {
+				err = notPositiveErr
+			}
+		case int64:
+			if v.(int64) <= 0 {
+				err = notPositiveErr
+			}
+		case int:
+			if v.(int) <= 0 {
+				err = notPositiveErr
+			}
+		case float32:
+			if v.(float32) <= 0 {
+				err = notPositiveErr
+			}
+		case float64:
+			if v.(float64) <= 0 {
+				err = notPositiveErr
+			}
+
+		case *int8:
+			i := v.(*int8)
+			if *i <= 0 {
+				err = notPositiveErr
+			}
+		case *int16:
+			i := v.(*int16)
+			if *i <= 0 {
+				err = notPositiveErr
+			}
+		case *int32:
+			i := v.(*int32)
+			if *i <= 0 {
+				err = notPositiveErr
+			}
+		case *int64:
+			i := v.(*int64)
+			if *i <= 0 {
+				err = notPositiveErr
+			}
+		case *int:
+			i := v.(*int)
+			if *i <= 0 {
+				err = notPositiveErr
+			}
+		case *float32:
+			i := v.(*float32)
+			if *i <= 0 {
+				err = notPositiveErr
+			}
+		case *float64:
+			i := v.(*float64)
+			if *i <= 0 {
+				err = notPositiveErr
+			}
+		default:
+			err = errors.New("@Positive not number type")
+		}
+	}).ElseDo(func() {
+		err = nilErr
+	})
+
+	return err
+}
+
+// negative
+// @Negative
+func negative(v any) error {
+	nilErr := errors.New("@Negative nil value")
+	notNegativeErr := errors.New("@Negative not negative value")
+	var err error = nil
+
+	typex.Opt(v).IfPresent(func(v any) {
+		switch v.(type) {
+		case int8:
+			if v.(int8) >= 0 {
+				err = notNegativeErr
+			}
+		case int16:
+			if v.(int16) >= 0 {
+				err = notNegativeErr
+			}
+		case int32:
+			if v.(int32) >= 0 {
+				err = notNegativeErr
+			}
+		case int64:
+			if v.(int64) >= 0 {
+				err = notNegativeErr
+			}
+		case int:
+			if v.(int) >= 0 {
+				err = notNegativeErr
+			}
+		case float32:
+			if v.(float32) >= 0 {
+				err = notNegativeErr
+			}
+		case float64:
+			if v.(float64) >= 0 {
+				err = notNegativeErr
+			}
+
+		case *int8:
+			i := v.(*int8)
+			if *i >= 0 {
+				err = notNegativeErr
+			}
+		case *int16:
+			i := v.(*int16)
+			if *i >= 0 {
+				err = notNegativeErr
+			}
+		case *int32:
+			i := v.(*int32)
+			if *i >= 0 {
+				err = notNegativeErr
+			}
+		case *int64:
+			i := v.(*int64)
+			if *i >= 0 {
+				err = notNegativeErr
+			}
+		case *int:
+			i := v.(*int)
+			if *i >= 0 {
+				err = notNegativeErr
+			}
+		case *float32:
+			i := v.(*float32)
+			if *i >= 0 {
+				err = notNegativeErr
+			}
+		case *float64:
+			i := v.(*float64)
+			if *i >= 0 {
+				err = notNegativeErr
+			}
+		default:
+			err = errors.New("@Negative not number type")
+		}
+	}).ElseDo(func() {
+		err = nilErr
+	})
+
+	return err
+}
+
+// future
+// @Future
+func future(v any) error {
+	notFutureErr := errors.New("@Future not future time")
+	var err error = nil
+	typex.Opt(v).IfPresent(func(v any) {
+		now := time.Now()
+
+		switch v.(type) {
+		case time.Time:
+			t := v.(time.Time)
+			if t.Before(now) || equal(t, now) {
+				err = notFutureErr
+			}
+		case *time.Time:
+			t := v.(*time.Time)
+			if t.Before(now) || equal(*t, now) {
+				err = notFutureErr
+			}
+		default:
+			err = errors.New("@Future wrong type")
+		}
+	}).ElseDo(func() {
+		err = errors.New("@Future nil value")
+	})
+
+	return err
+}
+
+// present
+// @Present
+func present(v any) error {
+	notPresentErr := errors.New("@Present not present time")
+	var err error = nil
+	typex.Opt(v).IfPresent(func(v any) {
+		now := time.Now()
+
+		switch v.(type) {
+		case time.Time:
+			t := v.(time.Time)
+			if !equal(t, now) {
+				err = notPresentErr
+			}
+		case *time.Time:
+			t := v.(*time.Time)
+			if !equal(*t, now) {
+				err = notPresentErr
+			}
+		default:
+			err = errors.New("@Present wrong type")
+		}
+	}).ElseDo(func() {
+		err = errors.New("@Present nil value")
+	})
+
+	return err
+}
+
+// past
+// @Past
+func past(v any) error {
+	notPastErr := errors.New("@Past not past time")
+	var err error = nil
+	typex.Opt(v).IfPresent(func(v any) {
+		now := time.Now()
+
+		switch v.(type) {
+		case time.Time:
+			t := v.(time.Time)
+			if equal(t, now) || t.After(now) {
+				err = notPastErr
+			}
+		case *time.Time:
+			t := v.(*time.Time)
+			if equal(*t, now) || t.After(now) {
+				err = notPastErr
+			}
+		default:
+			err = errors.New("@Past wrong type")
+		}
+	}).ElseDo(func() {
+		err = errors.New("@Past nil value")
+	})
+
+	return err
+}
+
+func equal(t1 time.Time, t2 time.Time) bool {
+	return t1.Unix()-t2.Unix() == 0
 }
