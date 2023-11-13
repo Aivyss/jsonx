@@ -660,3 +660,20 @@ func TestAnnotation(t *testing.T) {
 		}
 	})
 }
+
+func TestValidateFunction(t *testing.T) {
+	type testStruct struct {
+		Value string
+	}
+
+	v := testStruct{Value: "test_string"}
+	err := jsonx.Validate(v)
+	if err != nil {
+		t.Fatal("unexpected result1")
+	}
+
+	err = jsonx.Validate(&v)
+	if err == nil {
+		t.Fatal("unexpected result2")
+	}
+}

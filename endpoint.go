@@ -46,6 +46,11 @@ func RegisterCustomAnnotation(annotationName string, validateFunc definitions.An
 // Validate
 // don't input pointer type
 func Validate[T any](v T) error {
+	valueOf := reflect.ValueOf(v)
+	if valueOf.Kind() != reflect.Struct {
+		return errors.New("use only struct and its pointer")
+	}
+
 	// tag validation
 	typeOf := reflect.TypeOf(v)
 	for i := 0; i < typeOf.NumField(); i++ {
