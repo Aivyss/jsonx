@@ -3,6 +3,7 @@ package test
 import (
 	"errors"
 	"github.com/aivyss/jsonx"
+	"github.com/aivyss/typex/util"
 	"strings"
 	"testing"
 	"time"
@@ -659,6 +660,53 @@ func TestAnnotation(t *testing.T) {
 			t.Fatal("unexpected result6")
 		}
 	})
+}
+
+func TestPatternTag(t *testing.T) {
+	type testStruct struct {
+		Email string `json:"value" pattern:"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"`
+	}
+
+	type testStruct2 struct {
+		Email *string `json:"value" pattern:"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"`
+	}
+
+	j, err := jsonx.Marshal(testStruct{Email: "hklee6417@gmail.com"})
+	if err != nil {
+		t.Fatal("unexpected result1")
+	}
+	_, err = jsonx.Unmarshal[testStruct](j)
+	if err != nil {
+		t.Fatal("unexpected result2")
+	}
+
+	j, err = jsonx.Marshal(testStruct{Email: "wrong_string"})
+	if err != nil {
+		t.Fatal("unexpected result3")
+	}
+	_, err = jsonx.Unmarshal[testStruct](j)
+	if err == nil {
+		t.Fatal("unexpected result4")
+	}
+
+	j, err = jsonx.Marshal(testStruct2{Email: util.MustPointer("hklee6417@gmail.com")})
+	if err != nil {
+		t.Fatal("unexpected result5")
+	}
+	_, err = jsonx.Unmarshal[testStruct2](j)
+	if err != nil {
+		t.Fatal("unexpected result6")
+	}
+
+	j, err = jsonx.Marshal(testStruct2{Email: util.MustPointer("wrong_string")})
+	if err != nil {
+		t.Fatal("unexpected result7")
+	}
+	_, err = jsonx.Unmarshal[testStruct2](j)
+	if err == nil {
+		t.Fatal("unexpected result8")
+	}
+
 }
 
 func TestValidateFunction(t *testing.T) {

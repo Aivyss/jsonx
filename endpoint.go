@@ -54,9 +54,26 @@ func Validate[T any](v T) error {
 	// tag validation
 	typeOf := reflect.TypeOf(v)
 	for i := 0; i < typeOf.NumField(); i++ {
-		err := tag.ValidateAnnotationTag(typeOf.Field(i).Tag.Get("annotation"), reflect.ValueOf(v).Field(i).Interface())
-		if err != nil {
-			return err
+		// annotation validation
+		fieldTag := typeOf.Field(i).Tag
+
+		if annotations := fieldTag.Get("annotation"); annotations != "" {
+			if err := tag.ValidateAnnotationTag(
+				annotations,
+				reflect.ValueOf(v).Field(i).Interface(),
+			); err != nil {
+				return err
+			}
+		}
+
+		// regex validation
+		if pattern := fieldTag.Get("pattern"); pattern != "" {
+			if err := tag.RegexTag(
+				pattern,
+				reflect.ValueOf(v).Field(i).Interface(),
+			); err != nil {
+				return err
+			}
 		}
 	}
 
