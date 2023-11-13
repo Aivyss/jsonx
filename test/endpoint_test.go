@@ -351,6 +351,45 @@ func TestAnnotation(t *testing.T) {
 		}
 	})
 
+	t.Run("[PositiveOrZero]", func(t *testing.T) {
+		type testStruct struct {
+			Value int `json:"value" annotation:"@PositiveOrZero"`
+		}
+		type testStruct2 struct {
+			Value *float32 `json:"value" annotation:"@PositiveOrZero"`
+		}
+
+		_, err := jsonx.Unmarshal[testStruct]([]byte(`{ "value": 1 }`))
+		if err != nil {
+			t.Fatal("unexpected result1")
+		}
+		_, err = jsonx.Unmarshal[testStruct]([]byte(`{ "value": 0 }`))
+		if err != nil {
+			t.Fatal("unexpected result2")
+		}
+		_, err = jsonx.Unmarshal[testStruct]([]byte(`{ "value": -1 }`))
+		if err == nil {
+			t.Fatal("unexpected result3")
+		}
+
+		_, err = jsonx.Unmarshal[testStruct2]([]byte(`{ "value": 1 }`))
+		if err != nil {
+			t.Fatal("unexpected result4")
+		}
+		_, err = jsonx.Unmarshal[testStruct2]([]byte(`{ "value": 0 }`))
+		if err != nil {
+			t.Fatal("unexpected result5")
+		}
+		_, err = jsonx.Unmarshal[testStruct2]([]byte(`{ "value": -1 }`))
+		if err == nil {
+			t.Fatal("unexpected result6")
+		}
+		_, err = jsonx.Unmarshal[testStruct2]([]byte(`{ "value": null }`))
+		if err == nil {
+			t.Fatal("unexpected result7")
+		}
+	})
+
 	t.Run("[Negative]", func(t *testing.T) {
 		type testStruct struct {
 			Value int `json:"value" annotation:"@Negative"`
@@ -378,6 +417,45 @@ func TestAnnotation(t *testing.T) {
 		}
 		_, err = jsonx.Unmarshal[testStruct2]([]byte(`{ "value": 0 }`))
 		if err == nil {
+			t.Fatal("unexpected result5")
+		}
+		_, err = jsonx.Unmarshal[testStruct2]([]byte(`{ "value": -1 }`))
+		if err != nil {
+			t.Fatal("unexpected result6")
+		}
+		_, err = jsonx.Unmarshal[testStruct2]([]byte(`{ "value": null }`))
+		if err == nil {
+			t.Fatal("unexpected result7")
+		}
+	})
+
+	t.Run("[NegativeOrZero]", func(t *testing.T) {
+		type testStruct struct {
+			Value int `json:"value" annotation:"@NegativeOrZero"`
+		}
+		type testStruct2 struct {
+			Value *float32 `json:"value" annotation:"@NegativeOrZero"`
+		}
+
+		_, err := jsonx.Unmarshal[testStruct]([]byte(`{ "value": 1 }`))
+		if err == nil {
+			t.Fatal("unexpected result1")
+		}
+		_, err = jsonx.Unmarshal[testStruct]([]byte(`{ "value": 0 }`))
+		if err != nil {
+			t.Fatal("unexpected result2")
+		}
+		_, err = jsonx.Unmarshal[testStruct]([]byte(`{ "value": -1 }`))
+		if err != nil {
+			t.Fatal("unexpected result3")
+		}
+
+		_, err = jsonx.Unmarshal[testStruct2]([]byte(`{ "value": 1 }`))
+		if err == nil {
+			t.Fatal("unexpected result4")
+		}
+		_, err = jsonx.Unmarshal[testStruct2]([]byte(`{ "value": 0 }`))
+		if err != nil {
 			t.Fatal("unexpected result5")
 		}
 		_, err = jsonx.Unmarshal[testStruct2]([]byte(`{ "value": -1 }`))
@@ -500,6 +578,84 @@ func TestAnnotation(t *testing.T) {
 		}
 		_, err = jsonx.Unmarshal[testStruct](j)
 		if err == nil {
+			t.Fatal("unexpected result6")
+		}
+	})
+
+	t.Run("[FutureOrPresent]", func(t *testing.T) {
+		present := time.Now()
+		future := present.Add(1 * time.Second)
+		past := present.Add(-1 * time.Second)
+		type testStruct struct {
+			Value time.Time `json:"value" annotation:"@FutureOrPresent"`
+		}
+		// future
+		j, err := jsonx.Marshal(testStruct{Value: future})
+		if err != nil {
+			t.Fatal("unexpected result1")
+		}
+
+		_, err = jsonx.Unmarshal[testStruct](j)
+		if err != nil {
+			t.Fatal("unexpected result2")
+		}
+
+		// past
+		j, err = jsonx.Marshal(testStruct{Value: past})
+		if err != nil {
+			t.Fatal("unexpected result3")
+		}
+		_, err = jsonx.Unmarshal[testStruct](j)
+		if err == nil {
+			t.Fatal("unexpected result4")
+		}
+
+		// present
+		j, err = jsonx.Marshal(testStruct{Value: present})
+		if err != nil {
+			t.Fatal("unexpected result5")
+		}
+		_, err = jsonx.Unmarshal[testStruct](j)
+		if err != nil {
+			t.Fatal("unexpected result6")
+		}
+	})
+
+	t.Run("[PastOrPresent]", func(t *testing.T) {
+		present := time.Now()
+		future := present.Add(1 * time.Second)
+		past := present.Add(-1 * time.Second)
+		type testStruct struct {
+			Value time.Time `json:"value" annotation:"@PastOrPresent"`
+		}
+		// future
+		j, err := jsonx.Marshal(testStruct{Value: future})
+		if err != nil {
+			t.Fatal("unexpected result1")
+		}
+
+		_, err = jsonx.Unmarshal[testStruct](j)
+		if err == nil {
+			t.Fatal("unexpected result2")
+		}
+
+		// past
+		j, err = jsonx.Marshal(testStruct{Value: past})
+		if err != nil {
+			t.Fatal("unexpected result3")
+		}
+		_, err = jsonx.Unmarshal[testStruct](j)
+		if err != nil {
+			t.Fatal("unexpected result4")
+		}
+
+		// present
+		j, err = jsonx.Marshal(testStruct{Value: present})
+		if err != nil {
+			t.Fatal("unexpected result5")
+		}
+		_, err = jsonx.Unmarshal[testStruct](j)
+		if err != nil {
 			t.Fatal("unexpected result6")
 		}
 	})
