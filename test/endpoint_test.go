@@ -3,6 +3,7 @@ package test
 import (
 	"errors"
 	"github.com/aivyss/jsonx"
+	jsonxErr "github.com/aivyss/jsonx/errors"
 	"github.com/aivyss/typex/util"
 	"strings"
 	"testing"
@@ -706,7 +707,6 @@ func TestPatternTag(t *testing.T) {
 	if err == nil {
 		t.Fatal("unexpected result8")
 	}
-
 }
 
 func TestValidateFunction(t *testing.T) {
@@ -723,5 +723,67 @@ func TestValidateFunction(t *testing.T) {
 	err = jsonx.Validate(&v)
 	if err == nil {
 		t.Fatal("unexpected result2")
+	}
+
+	present := time.Now()
+	future := present.Add(1 * time.Second)
+	past := future.Add(-2 * time.Second)
+	type testStruct2 struct {
+		Value time.Time `json:"value" annotation:"@Present"`
+	}
+	// future
+	err = jsonx.Validate[testStruct2](testStruct2{Value: future})
+	if err == nil {
+		t.Fatal("unexpected result3")
+	}
+
+	// past
+	err = jsonx.Validate[testStruct2](testStruct2{Value: past})
+	if err == nil {
+		t.Fatal("unexpected result4")
+	}
+
+	// present
+	err = jsonx.Validate[testStruct2](testStruct2{Value: present})
+	if err != nil {
+		t.Fatal("unexpected result5")
+	}
+}
+
+func TestFixFieldErr(t *testing.T) {
+	jsonx.Close()
+	errName := "testErr"
+	msg := "test_msg"
+	jsonx.RegisterFieldError(errName, msg)
+	present := time.Now()
+	future := present.Add(1 * time.Second)
+	past := future.Add(-2 * time.Second)
+	type testStruct struct {
+		Value time.Time `json:"value" annotation:"@Present" fieldErr:"testErr"`
+	}
+	// future
+	err := jsonx.Validate[testStruct](testStruct{Value: future})
+	fieldErr, ok := err.(*jsonxErr.FieldError)
+	if !ok || err == nil {
+		t.Fatal("unexpected result1")
+	}
+	if fieldErr.DefaultMsg() != msg || fieldErr.Name() != errName {
+		t.Fatal("unexpected result2")
+	}
+
+	// past
+	err = jsonx.Validate[testStruct](testStruct{Value: past})
+	fieldErr, ok = err.(*jsonxErr.FieldError)
+	if !ok || err == nil {
+		t.Fatal("unexpected result3")
+	}
+	if fieldErr.DefaultMsg() != msg || fieldErr.Name() != errName {
+		t.Fatal("unexpected result4")
+	}
+
+	// present
+	err = jsonx.Validate[testStruct](testStruct{Value: present})
+	if err != nil {
+		t.Fatal("unexpected result5")
 	}
 }

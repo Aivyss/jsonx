@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/aivyss/jsonx/definitions"
+	jsonxErr "github.com/aivyss/jsonx/errors"
 	"github.com/aivyss/jsonx/tag"
 	"github.com/aivyss/jsonx/validate"
 	"github.com/aivyss/typex"
@@ -62,7 +63,7 @@ func Validate[T any](v T) error {
 				annotations,
 				reflect.ValueOf(v).Field(i).Interface(),
 			); err != nil {
-				return err
+				return exchangeIfFieldError(fieldTag, err)
 			}
 		}
 
@@ -72,7 +73,7 @@ func Validate[T any](v T) error {
 				pattern,
 				reflect.ValueOf(v).Field(i).Interface(),
 			); err != nil {
-				return err
+				return exchangeIfFieldError(fieldTag, err)
 			}
 		}
 	}
@@ -107,7 +108,27 @@ func Validate[T any](v T) error {
 	return nil
 }
 
+func RegisterFieldError(errorName, msg string) {
+	fieldErr := jsonxErr.NewFieldErr(errorName, msg)
+	fieldErrMap[fieldErr.Name()] = *fieldErr
+}
+
+func exchangeIfFieldError(tag reflect.StructTag, err error) error {
+	fieldErrName := tag.Get("fieldErr")
+
+	if fieldErrName == "" {
+		return err
+	}
+
+	if fieldErr, ok := fieldErrMap[fieldErrName]; ok {
+		return &fieldErr
+	}
+
+	return err
+}
+
 func Close() {
 	validatorMap = map[reflect.Type]any{}
 	orderedValidatorMap = typex.NewMultiMap[reflect.Type, any]()
+	fieldErrMap = map[string]jsonxErr.FieldError{}
 }
