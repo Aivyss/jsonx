@@ -787,3 +787,109 @@ func TestFixFieldErr(t *testing.T) {
 		t.Fatal("unexpected result5")
 	}
 }
+
+func TestNestedStruct(t *testing.T) {
+	t.Run("[time]", func(t *testing.T) {
+		present := time.Now()
+		future := present.Add(1 * time.Second)
+		past := present.Add(-1 * time.Second)
+		type testStruct1 struct {
+			Value time.Time `json:"value" annotation:"@Future"`
+		}
+
+		type testStruct2 struct {
+			Value testStruct1 `json:"value"`
+		}
+
+		// future
+		j, err := jsonx.Marshal(testStruct2{Value: testStruct1{Value: future}})
+		if err != nil {
+			t.Fatal("unexpected result1")
+		}
+
+		_, err = jsonx.Unmarshal[testStruct2](j)
+		if err != nil {
+			t.Fatal("unexpected result2")
+		}
+
+		// past
+		j, err = jsonx.Marshal(testStruct2{Value: testStruct1{Value: past}})
+		if err != nil {
+			t.Fatal("unexpected result3")
+		}
+		_, err = jsonx.Unmarshal[testStruct2](j)
+		if err == nil {
+			t.Fatal("unexpected result4")
+		}
+
+		// present
+		j, err = jsonx.Marshal(testStruct2{Value: testStruct1{Value: present}})
+		if err != nil {
+			t.Fatal("unexpected result5")
+		}
+		_, err = jsonx.Unmarshal[testStruct2](j)
+		if err == nil {
+			t.Fatal("unexpected result6")
+		}
+	})
+
+	t.Run("primitive", func(t *testing.T) {
+		type testStruct struct {
+			Value string `json:"value" annotation:"@NotBlank"`
+		}
+
+		type testStruct2 struct {
+			Value testStruct `json:"value"`
+		}
+
+		j, err := jsonx.Marshal(testStruct2{Value: testStruct{Value: ""}})
+		if err != nil {
+			t.Fatal("unexpected result1")
+		}
+
+		_, err = jsonx.Unmarshal[testStruct2](j)
+		if err == nil {
+			t.Fatal("unexpected result2")
+		}
+
+		j, err = jsonx.Marshal(testStruct2{Value: testStruct{Value: "value"}})
+		if err != nil {
+			t.Fatal("unexpected result3")
+		}
+
+		_, err = jsonx.Unmarshal[testStruct2](j)
+		if err != nil {
+			t.Fatal("unexpected result4")
+		}
+	})
+
+	t.Run("pointer", func(t *testing.T) {
+		type testStruct struct {
+			Value *string `json:"value" annotation:"@NotBlank"`
+		}
+
+		type testStruct2 struct {
+			Value testStruct `json:"value"`
+		}
+
+		j, err := jsonx.Marshal(testStruct2{Value: testStruct{Value: util.MustPointer("")}})
+		if err != nil {
+			t.Fatal("unexpected result1")
+		}
+
+		_, err = jsonx.Unmarshal[testStruct2](j)
+		if err == nil {
+			t.Fatal("unexpected result2")
+		}
+
+		j, err = jsonx.Marshal(testStruct2{Value: testStruct{Value: util.MustPointer("value")}})
+		if err != nil {
+			t.Fatal("unexpected result3")
+		}
+
+		_, err = jsonx.Unmarshal[testStruct2](j)
+		if err != nil {
+			t.Fatal("unexpected result4")
+		}
+	})
+}

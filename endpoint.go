@@ -5,7 +5,6 @@ import (
 	"errors"
 	"github.com/aivyss/jsonx/definitions"
 	jsonxErr "github.com/aivyss/jsonx/errors"
-	"github.com/aivyss/jsonx/tag"
 	"github.com/aivyss/jsonx/validate"
 	"github.com/aivyss/typex"
 	"reflect"
@@ -53,29 +52,8 @@ func Validate[T any](v T) error {
 	}
 
 	// tag validation
-	typeOf := reflect.TypeOf(v)
-	for i := 0; i < typeOf.NumField(); i++ {
-		// annotation validation
-		fieldTag := typeOf.Field(i).Tag
-
-		if annotations := fieldTag.Get("annotation"); annotations != "" {
-			if err := tag.ValidateAnnotationTag(
-				annotations,
-				reflect.ValueOf(v).Field(i).Interface(),
-			); err != nil {
-				return exchangeIfFieldError(fieldTag, err)
-			}
-		}
-
-		// regex validation
-		if pattern := fieldTag.Get("pattern"); pattern != "" {
-			if err := tag.RegexTag(
-				pattern,
-				reflect.ValueOf(v).Field(i).Interface(),
-			); err != nil {
-				return exchangeIfFieldError(fieldTag, err)
-			}
-		}
+	if err := tagValidation(v); err != nil {
+		return err
 	}
 
 	typeOfElem := reflect.TypeOf(&v).Elem()
