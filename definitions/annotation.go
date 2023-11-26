@@ -4,7 +4,7 @@ import (
 	"errors"
 	"github.com/aivyss/jsonx/constant"
 	"github.com/aivyss/typex"
-	"github.com/aivyss/typex/util"
+	"github.com/aivyss/typex/types"
 	"reflect"
 	"regexp"
 	"strings"
@@ -75,7 +75,7 @@ func notEmpty(v any) error {
 
 	switch v.(type) {
 	case *string:
-		if util.IsNil(v) {
+		if types.IsNil(v) {
 			err = errors.New("@NotEmpty nil value")
 		} else {
 			if *(v.(*string)) == "" {
@@ -100,7 +100,7 @@ func notBlank(v any) error {
 
 	switch v.(type) {
 	case *string:
-		if util.IsNil(v) {
+		if types.IsNil(v) {
 			err = errors.New("@NotBlank nil value")
 		} else {
 			if strings.TrimSpace(*(v.(*string))) == "" {
@@ -121,7 +121,7 @@ func notBlank(v any) error {
 // requried
 // @Required
 func required(v any) error {
-	if util.IsNil(v) {
+	if types.IsNil(v) {
 		return errors.New("@Required")
 	}
 
@@ -135,7 +135,7 @@ func email(v any) error {
 
 	switch v.(type) {
 	case *string:
-		if util.IsNil(v) {
+		if types.IsNil(v) {
 			err = errors.New("@Email nil value")
 		} else {
 			matched, err := regexp.MatchString(constant.EmailRegex, *(v.(*string)))

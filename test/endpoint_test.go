@@ -4,7 +4,7 @@ import (
 	"errors"
 	"github.com/aivyss/jsonx"
 	jsonxErr "github.com/aivyss/jsonx/errors"
-	"github.com/aivyss/typex/util"
+	"github.com/aivyss/typex/pointer"
 	"strings"
 	"testing"
 	"time"
@@ -690,7 +690,7 @@ func TestPatternTag(t *testing.T) {
 		t.Fatal("unexpected result4")
 	}
 
-	j, err = jsonx.Marshal(testStruct2{Email: util.MustPointer("hklee6417@gmail.com")})
+	j, err = jsonx.Marshal(testStruct2{Email: pointer.MustPointer("hklee6417@gmail.com")})
 	if err != nil {
 		t.Fatal("unexpected result5")
 	}
@@ -699,7 +699,7 @@ func TestPatternTag(t *testing.T) {
 		t.Fatal("unexpected result6")
 	}
 
-	j, err = jsonx.Marshal(testStruct2{Email: util.MustPointer("wrong_string")})
+	j, err = jsonx.Marshal(testStruct2{Email: pointer.MustPointer("wrong_string")})
 	if err != nil {
 		t.Fatal("unexpected result7")
 	}
@@ -872,7 +872,7 @@ func TestNestedStruct(t *testing.T) {
 			Value testStruct `json:"value"`
 		}
 
-		j, err := jsonx.Marshal(testStruct2{Value: testStruct{Value: util.MustPointer("")}})
+		j, err := jsonx.Marshal(testStruct2{Value: testStruct{Value: pointer.MustPointer("")}})
 		if err != nil {
 			t.Fatal("unexpected result1")
 		}
@@ -882,7 +882,7 @@ func TestNestedStruct(t *testing.T) {
 			t.Fatal("unexpected result2")
 		}
 
-		j, err = jsonx.Marshal(testStruct2{Value: testStruct{Value: util.MustPointer("value")}})
+		j, err = jsonx.Marshal(testStruct2{Value: testStruct{Value: pointer.MustPointer("value")}})
 		if err != nil {
 			t.Fatal("unexpected result3")
 		}
